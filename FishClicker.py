@@ -1,7 +1,7 @@
 from PyWigit import *
 import json
 import os
-screen = NewScreen((720, 408))
+screen = NewScreen((800, 600))
 Window = Screen(screen, FullScreen=True)
 font = NewFont("timesnewroman", 20)
 SetCaption("Button Clicker")
@@ -24,6 +24,14 @@ def checkAchivements():
         if PossibleAchivements[j][1] <= cash:
           Achivements.append(j)
           MessageQueue.append(j)
+          if j == "Surpasing Infinity":
+            MessageQueue.append("Congratulations, you have won.")
+            MessageQueue.append("We hope you enjoyed the \"game\"")
+            MessageQueue.append("Button Clicker was developed by:")
+            MessageQueue.append("************ Colman *************")
+            MessageQueue.append("************* David *************")
+            MessageQueue.append("************ Raphael ************")
+            MessageQueue.append("Now, go enjoy the rest of your life")
       elif PossibleAchivements[j][0] >= 1:
         try:
           if PossibleAchivements[j][1] <= Buttons[PossibleAchivements[j][0]-1][3]:
@@ -111,12 +119,16 @@ if os.path.exists("ButtonClicker.save"):
     load[data["version"]-1](data)
 else:
     NewUpgrade()
+    MessageQueue.append("Welcome to Button Clicker!")
+    MessageQueue.append("Anything that says Button...")
+    MessageQueue.append("is a button for you to click.")
+    MessageQueue.append("We hope you enjoy the \"game\"")
 def DrawGame(screen):
     checkAchivements()
     global MessageTicks, cash
     if len(MessageQueue)>0:
       MessageTicks+=1
-      screen.blit(font.render(f"{MessageQueue[0]}", True, Yellow), (550, 0))
+      screen.blit(font.render(f"{MessageQueue[0]}", True, Yellow), (520, 0))
       if MessageTicks == 90:
         MessageTicks = 0
         MessageQueue.pop(0)
