@@ -2,17 +2,29 @@ from PyWigit import *
 import json
 import os
 screen = NewScreen((720, 400))
+Window = Screen(screen, FullScreen=True)
 font = NewFont("timesnewroman", 20)
 SetCaption("Button Clicker")
 cash = 0
 Buttons = []
 Achivements = []
-PosibleAchivements = {}
+PossibleAchivements = {
+    "Surpasing Infinity":(0, 10**16), # based on cash, requires hiting infinity
+    "Starting Out":(1, 1) # based on button 1, click button 1, 1 time
+}
+def checkAchivements():
+  for j in PossibleAchivements:
+    if not j in Achivements:
+      if PossibleAchivements[j][0] == 0:
+        if PossibleAchivements[j][1] <= cash:
+          Achivements.append(j)
+      elif PossibleAchivements[j][0] >= 1:
+        if PossibleAchivements[j][1] <= Buttons[PossibleAchivements[j][0]-1][3]:
+          Achivements.append(j)
 def LoadVersion1SaveData(data):
     global Buttons, cash, i
     try:
         cash = data["cash"]
-        print("Data loaded:", data)
         Buttons[0][2] = data["buttons"][0][1]
         Buttons[0][3] = data["buttons"][0][2]
         for j in range(1,len(data["buttons"])):
@@ -22,7 +34,7 @@ def LoadVersion1SaveData(data):
             Buttons[j][3] = data["buttons"][j][2]
     except Exception as e:
         if isinstance(e, KeyError):
-            print("Reading Game 1Data failed: Save Data is from an old version which does not have key: ", e)
+            print("Reading Game Data failed: Save Data is from an old version which does not have key: ", e)
         else:
             print("Reading Game Data failed:", e)
         Buttons = []
@@ -33,18 +45,27 @@ def LoadVersion1SaveData(data):
     finally:
          f.close()
 def LoadVersion2SaveData(data):
-    LoadVersion1SaveData(data)
-    for j in range(1, len(data["achivements"])):
+    try:
+      LoadVersion1SaveData(data)
+      for j in range(1, len(data["achivements"])):
         Achivements.append(data["achivements"][j])
+    except Exception as e:
+        if isinstance(e, KeyError):
+            print("Reading Game Data failed: Save Data is from an old version which does not have key: ", e)
+        else:
+            print("Reading Game Data failed:", e)
+        Buttons = []
+        cash = 0
+        i = 1
+        Buttons.append([Button(font.render("Button: .", True, White), LeftClick=Button0Click), 0, 1, 0])
+        NewUpgrade()
 load = [LoadVersion1SaveData, LoadVersion2SaveData]
 def SaveGame():
     f = open("ButtonClicker.save", "w")
-    print("Saving Game")
     data = []
     for j in Buttons:
         data.append([j[1], j[2], j[3]])
-    print("Data Constructed: ", data)
-    f.write(json.dumps({"version":1, "buttons":data, "cash":cash}))
+    f.write(json.dumps({"version":1, "buttons":data, "cash":cash, "achivements": Achivements}))
     f.close()
 def Button0Click():
     global cash
@@ -68,10 +89,11 @@ Buttons.append([Button(font.render("Button {i+1}($.): .", True, White), LeftClic
 """)
     i+=1
 Save = Button(font.render("Save", True, White), LeftClick=SaveGame)
+AchivmentsButton = Button(font.render("Achivments", True, Green), LeftClick=lambda : Window.ChangeScrn(2))
+UpgradesButton = Button(font.render("Upgrades", True, Green), LeftClick=lambda : Window.ChangeScrn(1))
 Buttons.append([Button(font.render("Button: .", True, White), LeftClick=Button0Click), 0, 1, 0])
 if os.path.exists("ButtonClicker.save"):
     f = open("ButtonClicker.save")
-    print("Reading Game Data")
     data = json.loads(f.read())
     load[data["version"]-1](data)
 else:
@@ -84,6 +106,7 @@ def DrawGame(screen):
     else:
         screen.blit(font.render(f"CASH: {cash:,}", True, White), (20, 0))
     Save.draw(screen, (300, 0))
+    AchivmentsButton.draw(screen, (400, 0))
     Buttons[0][0].display = font.render(f"Button: {Buttons[0][3]:,}, Increase Cash by {Buttons[0][2]:,} per click", True, White)
     Buttons[0][0].draw(screen, (20, 24))
     Buttons[1][0].display = font.render(f"Button 2(${Buttons[1][1]:,}): {Buttons[1][3]:,}, Increase Button value by {Buttons[1][2]:,} per click", True, White)
@@ -92,17 +115,36 @@ def DrawGame(screen):
         Buttons[j][0].display = font.render(f"Button {j+1}(${Buttons[j][1]:,}): {Buttons[j][3]:,}, Increase Button {j} value by {Buttons[j][2]:,} per click", True, White)
         Buttons[j][0].draw(screen, (20, 24+24*j))
 def InputGame(event):
-    if Save.Click():
+    if Save.Click(event):
+        return True
+    if AchivmentsButton.Click(event):
         return True
     for j in range(len(Buttons)):
         if Buttons[j][0].Click(event):
             return True
-def AchivementsDraw(screen):
-    pass
-def AchivementsInput(event):
-    pass
 CreateScrn(DrawGame, InputGame, Black)
-Screen(screen, FullScreen=True)
+def AchivementsDraw(screen):
+    global cash
+    if cash >= 10**16:
+        screen.blit(font.render(f"CASH: Infinity", True, White), (20, 0))
+        cash = 10**30
+    else:
+        screen.blit(font.render(f"CASH: {cash:,}", True, White), (20, 0))
+    Save.draw(screen, (300, 0))
+    UpgradesButton.draw(screen, (400, 0))
+    checkAchivements()
+    for j in range(len(PossibleAchivements)):
+         a= list(PossibleAchivements.keys())[j]
+         if a in Achivements:
+             screen.blit(font.render(f"{a}", True, White), (20 + 200*(j%4), 20+24*int(j/4)))
+         else: 
+             screen.blit(font.render(f"{a}", True, Red), (20 + 200*(j%4), 20+24*int(j/4)))
+def AchivementsInput(event):
+    if Save.Click(event):
+        return True
+    if UpgradesButton.Click(event):
+        return True
+CreateScrn(AchivementsDraw, AchivementsInput, Black)
 while Status():
     MainLoop(screen)
 SaveGame()
