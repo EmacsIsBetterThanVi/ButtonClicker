@@ -1,26 +1,36 @@
 from PyWigit import *
 import json
 import os
-screen = NewScreen((720, 400))
+screen = NewScreen((720, 408))
 Window = Screen(screen, FullScreen=True)
 font = NewFont("timesnewroman", 20)
 SetCaption("Button Clicker")
 cash = 0
+TotalCash = 0
 Buttons = []
 Achivements = []
 PossibleAchivements = {
-    "Surpasing Infinity":(0, 10**16), # based on cash, requires hiting infinity
-    "Starting Out":(1, 1) # based on button 1, click button 1, 1 time
+    "Starting Out":(1, 1), # based on button 1, click button 1, 1 time
+    "Perstitance":(1, 1000),
+    "Millionaire":(0, 10**6),
+    "Billionaire":(0, 10**9),
+    "Surpasing Infinity":(0, 10**16) # based on cash, requires hiting infinity
 }
+MessageQueue = []
 def checkAchivements():
   for j in PossibleAchivements:
     if not j in Achivements:
       if PossibleAchivements[j][0] == 0:
         if PossibleAchivements[j][1] <= cash:
           Achivements.append(j)
+          MessageQueue.append(j)
       elif PossibleAchivements[j][0] >= 1:
-        if PossibleAchivements[j][1] <= Buttons[PossibleAchivements[j][0]-1][3]:
-          Achivements.append(j)
+        try:
+          if PossibleAchivements[j][1] <= Buttons[PossibleAchivements[j][0]-1][3]:
+            Achivements.append(j)
+            MessageQueue.append(j)
+        except Exception as e:
+           pass
 def LoadVersion1SaveData(data):
     global Buttons, cash, i
     try:
@@ -45,10 +55,12 @@ def LoadVersion1SaveData(data):
     finally:
          f.close()
 def LoadVersion2SaveData(data):
+    global TotalCash
     try:
       LoadVersion1SaveData(data)
-      for j in range(1, len(data["achivements"])):
+      for j in range(0, len(data["achivements"])):
         Achivements.append(data["achivements"][j])
+      TotalCash = data["TotalCash"]
     except Exception as e:
         if isinstance(e, KeyError):
             print("Reading Game Data failed: Save Data is from an old version which does not have key: ", e)
@@ -65,7 +77,7 @@ def SaveGame():
     data = []
     for j in Buttons:
         data.append([j[1], j[2], j[3]])
-    f.write(json.dumps({"version":1, "buttons":data, "cash":cash, "achivements": Achivements}))
+    f.write(json.dumps({"version":2, "buttons":data, "cash":cash, "achivements": Achivements, "TotalCash": TotalCash}))
     f.close()
 def Button0Click():
     global cash
@@ -74,6 +86,7 @@ def Button0Click():
         cash += Buttons[0][2]
         Buttons[0][3] += 1
 i = 1
+MessageTicks = 0
 def NewUpgrade():
     global i
     exec(f"""def Button{i}Click():
@@ -99,7 +112,14 @@ if os.path.exists("ButtonClicker.save"):
 else:
     NewUpgrade()
 def DrawGame(screen):
-    global cash
+    checkAchivements()
+    global MessageTicks, cash
+    if len(MessageQueue)>0:
+      MessageTicks+=1
+      screen.blit(font.render(f"{MessageQueue[0]}", True, Yellow), (550, 0))
+      if MessageTicks == 90:
+        MessageTicks = 0
+        MessageQueue.pop(0)
     if cash >= 10**16:
         screen.blit(font.render(f"CASH: Infinity", True, White), (20, 0))
         cash = 10**30
@@ -132,7 +152,6 @@ def AchivementsDraw(screen):
         screen.blit(font.render(f"CASH: {cash:,}", True, White), (20, 0))
     Save.draw(screen, (300, 0))
     UpgradesButton.draw(screen, (400, 0))
-    checkAchivements()
     for j in range(len(PossibleAchivements)):
          a= list(PossibleAchivements.keys())[j]
          if a in Achivements:
