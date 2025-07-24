@@ -154,7 +154,7 @@ Buttons.append([ImageTextButton(font.render("Button {i+1}($.): .", True, White),
 """)
     i+=1
 Save = Button(font.render("Save", True, White), LeftClick=SaveGame)
-AchivmentsButton = Button(font.render("Achivments", True, Green), LeftClick=lambda : Window.ChangeScrn(2))
+AchivmentsButton = Button(font.render("Achievments", True, Green), LeftClick=lambda : Window.ChangeScrn(2))
 UpgradesButton = Button(font.render("Upgrades", True, Green), LeftClick=lambda : Window.ChangeScrn(1))
 Buttons.append([ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/button1.png"), pygame.image.load(os.path.dirname(__file__)+"/button1P.png"), LeftClick=Button0Click), 0, 1, 0])
 if os.path.exists("ButtonClicker.save"):
@@ -164,8 +164,6 @@ if os.path.exists("ButtonClicker.save"):
 else:
     NewUpgrade()
     MessageQueue.append("Welcome to Button Clicker!")
-    #MessageQueue.append("Anything that says Button...")
-    #MessageQueue.append("is a button for you to click.")
     MessageQueue.append("We hope you enjoy the \"game\"")
 def DrawGame(screen):
     checkAchivements()
@@ -183,12 +181,12 @@ def DrawGame(screen):
         screen.blit(font.render(f"CASH: {cash:,}", True, White), (20, 0))
     Save.draw(screen, (300, 0))
     AchivmentsButton.draw(screen, (400, 0))
-    Buttons[0][0].text = font.render(f": {Buttons[0][3]:,}, Increase Cash by {Buttons[0][2]:,} per click", True, White)
+    Buttons[0][0].text = font.render(f": {Buttons[0][2]:,}", True, White)
     Buttons[0][0].draw(screen, (20, 24))
-    Buttons[1][0].text = font.render(f"(${Buttons[1][1]:,}): {Buttons[1][3]:,}, Increase Button value by {Buttons[1][2]:,} per click", True, White)
+    Buttons[1][0].text = font.render(f"(${Buttons[1][1]:,}): {Buttons[1][2]:,}", True, White)
     Buttons[1][0].draw(screen, (20, 49))
     for j in range(2, len(Buttons)):
-        Buttons[j][0].text = font.render(f"(${Buttons[j][1]:,}): {Buttons[j][3]:,}, Increase Button {j} value by {Buttons[j][2]:,} per click", True, White)
+        Buttons[j][0].text = font.render(f"(${Buttons[j][1]:,}): {Buttons[j][2]:,}", True, White)
         Buttons[j][0].draw(screen, (20, 24+25*j))
 def InputGame(event):
     if Save.Click(event):
