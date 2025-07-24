@@ -1,4 +1,5 @@
 from PyWigit import *
+import asyncio
 class ImageTextButton():
   def __init__(self, text, image1, image2=None, LeftClick=None, RightClick=None, Mouse=None):
     self.text = text
@@ -175,13 +176,13 @@ def NewUpgrade():
         self.image = True
     else:
       self.image = False
-Buttons.append([ImageTextButton(font.render("Button {i+1}($.): .", True, White), pygame.image.load(os.path.dirname(__file__)+"/button{i+1}.png"), pygame.image.load(os.path.dirname(__file__)+"/button{i+1}P.png"), LeftClick=Button{i}Click), 10**(i+1), 1, 0])
+Buttons.append([ImageTextButton(font.render("Button {i+1}($.): .", True, White), pygame.image.load(os.path.dirname(__file__)+"/Button{i+1}.png"), pygame.image.load(os.path.dirname(__file__)+"/Button{i+1}P.png"), LeftClick=Button{i}Click), 10**(i+1), 1, 0])
 """)
     i+=1
 Save = Button(font.render("Save", True, White), LeftClick=SaveGame)
 AchivmentsButton = Button(font.render("Achievments", True, Green), LeftClick=lambda : Window.ChangeScrn(2))
 UpgradesButton = Button(font.render("Upgrades", True, Green), LeftClick=lambda : Window.ChangeScrn(1))
-Buttons.append([ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/button1.png"), pygame.image.load(os.path.dirname(__file__)+"/button1P.png"), LeftClick=Button0Click), 0, 1, 0])
+Buttons.append([ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/Button1.png"), pygame.image.load(os.path.dirname(__file__)+"/Button1P.png"), LeftClick=Button0Click), 0, 1, 0])
 if os.path.exists("ButtonClicker.save"):
     f = open("ButtonClicker.save")
     data = json.loads(f.read())
@@ -246,7 +247,10 @@ def AchivementsInput(event):
     if UpgradesButton.Click(event):
         return True
 CreateScrn(AchivementsDraw, AchivementsInput, Black)
-while Status():
+async def main():
+  while Status():
     MainLoop(screen)
-SaveGame()
-pygame.quit()
+    await asyncio.sleep(0)
+  SaveGame()
+  pygame.quit()
+asyncio.run(main())
