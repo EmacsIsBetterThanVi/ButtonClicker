@@ -140,7 +140,7 @@ def LoadVersion2SaveData(data):
         Buttons = []
         cash = 0
         i = 1
-        Buttons.append([Button(font.render("Button: .", True, White), LeftClick=Button0Click), 0, 1, 0])
+        Buttons.append([Button(font.render("Button: .", True, White), LeftClick=Button0Click), 0, 1, 0, 0])
         NewUpgrade()
 load = [LoadVersion1SaveData, LoadVersion2SaveData]
 def SaveGame():
@@ -150,7 +150,7 @@ def SaveGame():
         data.append([j[1], j[2], j[3]])
     f.write(json.dumps({"version":2, "buttons":data, "cash":cash, "achivements": Achivements, "TotalCash": TotalCash}))
     f.close()
-def Button0Click(self, UP: bool):
+def Button0Click(self, UP: bool, isAuto=False):
     global cash, TotalCash
     if not UP:
       self.image = True
@@ -163,26 +163,31 @@ i = 1
 MessageTicks = 0
 def NewUpgrade():
     global i
-    exec(f"""def Button{i}Click(self, UP):
+    exec(f"""def Button{i}Click(self, UP, isAuto=False):
     global cash
     if not UP:
-      if Buttons[{i}][1] <= cash:
+      if Buttons[{i}][1] <= cash and (Buttons[{i}][4] <= 0 or isAuto):
         cash -= Buttons[{i}][1]
         Buttons[{i-1}][2] += Buttons[{i}][2]
         Buttons[{i}][1] = int(Buttons[{i}][1] * 1.1)
         if Buttons[{i}][3] == 0:
+            Buttons[{i}][1] = 0
             NewUpgrade()
+        Buttons[{i}][4] = {i*2}
         Buttons[{i}][3] += 1
         self.image = True
     else:
       self.image = False
-Buttons.append([ImageTextButton(font.render("Button {i+1}($.): .", True, White), pygame.image.load(os.path.dirname(__file__)+"/Button{i+1}.png"), pygame.image.load(os.path.dirname(__file__)+"/Button{i+1}P.png"), LeftClick=Button{i}Click), 10**(i+1), 1, 0])
+Buttons.append([ImageTextButton(font.render("Button {i+1}($.): .", True, White), pygame.image.load(os.path.dirname(__file__)+"/Button{i+1}.png"), pygame.image.load(os.path.dirname(__file__)+"/Button{i+1}P.png"), LeftClick=Button{i}Click), 10**(i+1), 1, 0, 0])
 """)
     i+=1
 Save = Button(font.render("Save", True, White), LeftClick=SaveGame)
 AchivmentsButton = Button(font.render("Achievments", True, Green), LeftClick=lambda : Window.ChangeScrn(2))
 UpgradesButton = Button(font.render("Upgrades", True, Green), LeftClick=lambda : Window.ChangeScrn(1))
 Buttons.append([ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/Button1.png"), pygame.image.load(os.path.dirname(__file__)+"/Button1P.png"), LeftClick=Button0Click), 0, 1, 0])
+CooldownImageBoarder = pygame.image.load(os.path.dirname(__file__)+"/CooldownOutside.png")
+CooldownImageInside = pygame.image.load(os.path.dirname(__file__)+"/CooldownInside.png")
+Cooldown = ProgressBar(CooldownImageInside, (4,4), CooldownImageBoarder)
 if os.path.exists("ButtonClicker.save"):
     f = open("ButtonClicker.save")
     data = json.loads(f.read())
@@ -214,6 +219,10 @@ def DrawGame(screen):
     for j in range(2, len(Buttons)):
         Buttons[j][0].text = font.render(f"(${Buttons[j][1]:,}): {Buttons[j][2]:,}", True, White)
         Buttons[j][0].draw(screen, (20, 24+25*j))
+    for j in range(1, len(Buttons)):
+        if Buttons[j][4]>0:
+          Cooldown.draw(screen, (600, 24+25*j), Buttons[j][4], j*2)
+          Buttons[j][4] -= 1/60
 def InputGame(event):
     if Save.Click(event):
         return True

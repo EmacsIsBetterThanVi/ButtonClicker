@@ -238,6 +238,15 @@ class FileChoser(Screen):
     return FileChoser("File Choser", pygame.font.SysFont("timesnewroman", 20), Pointer(""))
   def ChangeScrn(self, num):
     pass
+class ProgressBar():
+  def __init__(self, inside, offset=(0, 0), outside=None):
+    self.inside = inside
+    self.outside = outside
+    self.offset = offset
+  def draw(self, screen, loc, fill, maxfill):
+    if self.outside:
+      screen.blit(self.outside, loc)
+    screen.blit(self.inside, (loc[0]+self.offset[0], loc[1]+self.offset[1]), pygame.Rect(0, 0, int(self.inside.get_width()*(fill/maxfill)), self.inside.get_height()))
 MultiScrn = [{"Object":None, "color":White}]
 FileChoser.Default()
 Windows = []
