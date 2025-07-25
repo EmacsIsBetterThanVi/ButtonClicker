@@ -18,23 +18,24 @@ class ImageTextButton():
       if self.rect.collidepoint(event.pos):
         if event.button == 1 and self.LeftClick:
           self.LeftClick(self, False)
-        elif event.button == 2 and self.RightClick:
+        elif event.button == 3 and self.RightClick:
           self.RightClick(self, False)
-        elif event.button == 3 and self.Mouse:
+        elif event.button == 2 and self.Mouse:
           self.Mouse(self, False)
         return True
     elif event.type == pygame.MOUSEBUTTONUP:
       if self.rect.collidepoint(event.pos):
         if event.button == 1 and self.LeftClick:
           self.LeftClick(self, True)
-        elif event.button == 2 and self.RightClick:
+        elif event.button == 3 and self.RightClick:
           self.RightClick(self, True)
-        elif event.button == 3 and self.Mouse:
+        elif event.button == 2 and self.Mouse:
           self.Mouse(self, True)
         return True
     return False
 import json
 import os
+import time
 screen = NewScreen((800, 600))
 Window = Screen(screen, FullScreen=True)
 font = NewFont("timesnewroman", 20)
@@ -75,6 +76,10 @@ PossibleAchivements = {
     "Surpasing Infinity":(0, 10**16), # based on cash, requires hiting infinity
     "True Infinity": (1, 10**100)
 }
+autoclick_active = False
+autoclick_timer = 0
+autoclick_interval = 1.0
+last_time = 0
 MessageQueue = []
 def checkAchivements():
   for j in PossibleAchivements:
@@ -160,6 +165,32 @@ def Button0Click(self, UP: bool, isAuto=False):
     else:
       self.image = False
 i = 1
+def update_autoclick():
+    global autoclick_timer, autoclick_active, last_time, cash
+    
+    if autoclick_active:
+        current_time = time.time()
+        if last_time == 0:
+            last_time = current_time
+            
+        dt = current_time - last_time
+        last_time = current_time
+        
+        autoclick_timer += dt
+        
+        if autoclick_timer >= autoclick_interval:
+        
+            if Buttons[0][1] <= cash:
+                cash -= Buttons[0][1]
+                cash += Buttons[0][2]
+                Buttons[0][3] += 1
+            autoclick_timer = 0
+
+def toggle_autoclick(arg1, arg2):
+    if not arg2:
+      global autoclick_active
+      autoclick_active = not autoclick_active
+      print(f"Autoclick {'activated' if autoclick_active else 'deactivated'}")
 MessageTicks = 0
 def NewUpgrade():
     global i
@@ -184,10 +215,22 @@ Buttons.append([ImageTextButton(font.render("Button {i+1}($.): .", True, White),
 Save = Button(font.render("Save", True, White), LeftClick=SaveGame)
 AchivmentsButton = Button(font.render("Achievments", True, Green), LeftClick=lambda : Window.ChangeScrn(2))
 UpgradesButton = Button(font.render("Upgrades", True, Green), LeftClick=lambda : Window.ChangeScrn(1))
+<<<<<<< HEAD:FishClicker.py
+Buttons.append([ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/button1.png"), pygame.image.load(os.path.dirname(__file__)+"/button1P.png"), LeftClick=Button0Click, RightClick=toggle_autoclick), 0, 1, 0])
+##AutoclickButton = Button(font.render("Toggle Autoclick", True, Yellow), LeftClick=toggle_autoclick)
+def Button0ClickHandler():
+    Button0Click()
+def Button0RightClick():
+    toggle_autoclick()
+=======
 Buttons.append([ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/Button1.png"), pygame.image.load(os.path.dirname(__file__)+"/Button1P.png"), LeftClick=Button0Click), 0, 1, 0])
+<<<<<<< HEAD
 CooldownImageBoarder = pygame.image.load(os.path.dirname(__file__)+"/CooldownOutside.png")
 CooldownImageInside = pygame.image.load(os.path.dirname(__file__)+"/CooldownInside.png")
 Cooldown = ProgressBar(CooldownImageInside, (4,4), CooldownImageBoarder)
+=======
+>>>>>>> e7fcc79112da1a190c53b1b707629ab330f6217f:main.py
+>>>>>>> 67433cf205c094870ab70f9ba7e7572699484f74
 if os.path.exists("ButtonClicker.save"):
     f = open("ButtonClicker.save")
     data = json.loads(f.read())
@@ -198,6 +241,7 @@ else:
     MessageQueue.append("We hope you enjoy the \"game\"")
 def DrawGame(screen):
     checkAchivements()
+    update_autoclick()
     global MessageTicks, cash
     if len(MessageQueue)>0:
       MessageTicks+=1
@@ -224,10 +268,19 @@ def DrawGame(screen):
           Cooldown.draw(screen, (600, 24+25*j), Buttons[j][4], j*2)
           Buttons[j][4] -= 1/60
 def InputGame(event):
+    #global autoclick_active
     if Save.Click(event):
         return True
     if AchivmentsButton.Click(event):
         return True
+    #if event.type == pygame.MOUSEBUTTONDOWN:
+    #    if event.button == 3:  # Right click
+    #        mouse_pos = pygame.mouse.get_pos()
+    #        # Check if right-click is on the main button (Button 0)
+    #        button_rect = pygame.Rect(20, 24, Buttons[0][0].image1.get_width(), Buttons[0][0].image1.get_height())
+    #        if button_rect.collidepoint(mouse_pos):
+    #            autoclick_active = not autoclick_active  # Toggle autoclick
+    #            return True
     for j in range(len(Buttons)):
         if Buttons[j][0].Click(event):
             return True
