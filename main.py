@@ -92,7 +92,7 @@ def checkAchivements():
             MessageQueue.append("Congratulations, you have won.")
             MessageQueue.append("We hope you enjoyed the \"game\"")
             MessageQueue.append("Button Clicker was developed by:")
-            MessageQueue.append("************ Colman *************")
+            MessageQueue.append("************ Coleman ************")
             MessageQueue.append("************* David *************")
             MessageQueue.append("************ Raphael ************")
             MessageQueue.append("Now, go enjoy the rest of your life")
