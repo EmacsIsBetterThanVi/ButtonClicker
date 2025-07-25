@@ -1,4 +1,5 @@
 from PyWigit import *
+import asyncio
 class ImageTextButton():
   def __init__(self, text, image1, image2=None, LeftClick=None, RightClick=None, Mouse=None):
     self.text = text
@@ -45,10 +46,35 @@ Buttons = []
 Achivements = []
 PossibleAchivements = {
     "Starting Out":(2, 1), # based on button 1, click button 1, 1 time
+    "First Upgrade":(3, 1),
     "Perstitance":(2, 1000),
+    "Perstitance 2":(3, 100),
+    "Perstitance 3":(4, 100),
+    "Perstitance 4":(5, 100),
+    "Perstitance 5":(6, 100),
+    "Perstitance 6":(7, 100),
+    "Perstitance 7":(8, 100),
+    "Perstitance 8":(9, 100),
+    "Perstitance 9":(10, 100),
+    "Perstitance 10":(11, 100),
+    "Perstitance 11":(12, 100),
+    "Perstitance 12":(13, 100),
+    "Perstitance 13":(14, 100),
+    "Perstitance 14":(15, 100),
+    "Perstitance 15":(16, 100),
+    "Perstitance 16":(17, 100),
+    "Perstitance 17":(18, 100),
+    "Perstitance 18":(19, 100),
+    "Perstitance 19":(20, 100),
+    "Perstitance 20":(21, 100),
+    "Perstitance 21":(22, 100),
+    "Perstitance 22":(23, 100),
+    "Perstitance 23":(24, 100),
     "Millionaire":(0, 10**6),
     "Billionaire":(0, 10**9),
-    "Surpasing Infinity":(0, 10**16) # based on cash, requires hiting infinity
+    "All Lucky Sevens":(1, 7777777),
+    "Surpasing Infinity":(0, 10**16), # based on cash, requires hiting infinity
+    "True Infinity": (1, 10**100)
 }
 autoclick_active = False
 autoclick_timer = 0
@@ -70,7 +96,7 @@ def checkAchivements():
             MessageQueue.append("************* David *************")
             MessageQueue.append("************ Raphael ************")
             MessageQueue.append("Now, go enjoy the rest of your life")
-      elif PossibleAchivements[j][0] == 0:
+      elif PossibleAchivements[j][0] == 1:
         if PossibleAchivements[j][1] <= TotalCash:
           Achivements.append(j)
           MessageQueue.append(j)
@@ -181,18 +207,22 @@ def NewUpgrade():
         self.image = True
     else:
       self.image = False
-Buttons.append([ImageTextButton(font.render("Button {i+1}($.): .", True, White), pygame.image.load(os.path.dirname(__file__)+"/button{i+1}.png"), pygame.image.load(os.path.dirname(__file__)+"/button{i+1}P.png"), LeftClick=Button{i}Click), 10**(i+1), 1, 0])
+Buttons.append([ImageTextButton(font.render("Button {i+1}($.): .", True, White), pygame.image.load(os.path.dirname(__file__)+"/Button{i+1}.png"), pygame.image.load(os.path.dirname(__file__)+"/Button{i+1}P.png"), LeftClick=Button{i}Click), 10**(i+1), 1, 0])
 """)
     i+=1
 Save = Button(font.render("Save", True, White), LeftClick=SaveGame)
 AchivmentsButton = Button(font.render("Achievments", True, Green), LeftClick=lambda : Window.ChangeScrn(2))
 UpgradesButton = Button(font.render("Upgrades", True, Green), LeftClick=lambda : Window.ChangeScrn(1))
+<<<<<<< HEAD:FishClicker.py
 Buttons.append([ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/button1.png"), pygame.image.load(os.path.dirname(__file__)+"/button1P.png"), LeftClick=Button0Click, RightClick=toggle_autoclick), 0, 1, 0])
 ##AutoclickButton = Button(font.render("Toggle Autoclick", True, Yellow), LeftClick=toggle_autoclick)
 def Button0ClickHandler():
     Button0Click()
 def Button0RightClick():
     toggle_autoclick()
+=======
+Buttons.append([ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/Button1.png"), pygame.image.load(os.path.dirname(__file__)+"/Button1P.png"), LeftClick=Button0Click), 0, 1, 0])
+>>>>>>> e7fcc79112da1a190c53b1b707629ab330f6217f:main.py
 if os.path.exists("ButtonClicker.save"):
     f = open("ButtonClicker.save")
     data = json.loads(f.read())
@@ -256,7 +286,10 @@ def AchivementsDraw(screen):
          a= list(PossibleAchivements.keys())[j]
          if a in Achivements:
              screen.blit(font.render(f"{a}", True, White), (20 + 200*(j%4), 20+24*int(j/4)))
-         else: 
+         else:
+           if a == "True Infinity":
+             screen.blit(font.render(f"?????????????", True, Black), (20 + 200*(j%4), 20+24*int(j/4)))
+           else:
              screen.blit(font.render(f"{a}", True, Red), (20 + 200*(j%4), 20+24*int(j/4)))
 def AchivementsInput(event):
     if Save.Click(event):
@@ -264,7 +297,10 @@ def AchivementsInput(event):
     if UpgradesButton.Click(event):
         return True
 CreateScrn(AchivementsDraw, AchivementsInput, Black)
-while Status():
+async def main():
+  while Status():
     MainLoop(screen)
-SaveGame()
-pygame.quit()
+    await asyncio.sleep(0)
+  SaveGame()
+  pygame.quit()
+asyncio.run(main())
