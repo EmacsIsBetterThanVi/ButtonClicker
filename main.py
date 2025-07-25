@@ -79,7 +79,6 @@ PossibleAchivements = {
 }
 autoclick_active = False
 autoclick_timer = 0
-autoclick_interval = 1.0
 last_time = 0
 MessageQueue = []
 def checkAchivements():
@@ -149,7 +148,7 @@ def LoadVersion2SaveData(data):
         Buttons.append([ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/Button1.png"), pygame.image.load(os.path.dirname(__file__)+"/Button1P.png"), LeftClick=Button0Click), 0, 1, 0, 0, 0])
         NewUpgrade()
 def LoadVersion3SaveData(data):
-  global Time, Buttons, cash ,i
+  global Time, Buttons, cash ,i, AutoclickTime, AutoclickCost, autoclick_active
   try:
     LoadVersion2SaveData(data)
     for j in range(0, len(data["buttons"])):
@@ -157,6 +156,10 @@ def LoadVersion3SaveData(data):
       Buttons[j][5] = data["buttons"][j][4]
     for j in range(0, len(data["time"])):
       Time[j][1] = data["time"][j]
+    AutoclickTime = data["autotime"]
+    if AutoclickTime != 2/0.9:
+      autoclick_active = True
+    AutoclickCost = data["autocost"]
   except Exception as e:
         if isinstance(e, KeyError):
             print("Reading Game Data failed: Save Data is from an old version which does not have key: ", e)
@@ -177,7 +180,7 @@ def SaveGame():
         data.append([j[1], j[2], j[3], j[4], j[5]])
     for j in Time:
       data2.append(j[1])
-    f.write(json.dumps({"version":3, "buttons":data, "cash":cash, "achivements": Achivements, "TotalCash": TotalCash, "time":data2}))
+    f.write(json.dumps({"version":3, "buttons":data, "cash":cash, "achivements": Achivements, "TotalCash": TotalCash, "time":data2, "autocost": AutoclickCost, "autotime":AutoclickTime}))
     f.close()
 def Button0Click(self, UP: bool, isAuto=False):
     global cash, TotalCash
@@ -202,7 +205,7 @@ def update_autoclick():
         
         autoclick_timer += dt
         
-        if autoclick_timer >= autoclick_interval:
+        if autoclick_timer >= AutoclickTime:
         
             if Buttons[0][1] <= cash:
                 cash -= Buttons[0][1]
@@ -210,11 +213,7 @@ def update_autoclick():
                 Buttons[0][3] += 1
             autoclick_timer = 0
 
-def toggle_autoclick(arg1, arg2):
-    if not arg2:
-      global autoclick_active
-      autoclick_active = not autoclick_active
-      print(f"Autoclick {'activated' if autoclick_active else 'deactivated'}")
+autoclick_active = False
 MessageTicks = 0
 def NewUpgrade():
     global i
@@ -249,26 +248,24 @@ Time.append([ImageTextButton(font.render("Button {i+1}($.): .", True, White), py
 Save = Button(font.render("Save", True, White), LeftClick=SaveGame)
 AchivmentsButton = Button(font.render("Achievments", True, Green), LeftClick=lambda : Window.ChangeScrn(2))
 UpgradesButton = Button(font.render("Upgrades", True, Green), LeftClick=lambda : Window.ChangeScrn(1))
-<<<<<<< HEAD
-<<<<<<< HEAD:FishClicker.py
-Buttons.append([ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/button1.png"), pygame.image.load(os.path.dirname(__file__)+"/button1P.png"), LeftClick=Button0Click, RightClick=toggle_autoclick), 0, 1, 0])
-##AutoclickButton = Button(font.render("Toggle Autoclick", True, Yellow), LeftClick=toggle_autoclick)
-def Button0ClickHandler():
-    Button0Click()
-def Button0RightClick():
-    toggle_autoclick()
-=======
-Buttons.append([ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/Button1.png"), pygame.image.load(os.path.dirname(__file__)+"/Button1P.png"), LeftClick=Button0Click), 0, 1, 0])
-<<<<<<< HEAD
-=======
+def AutoClickHandle(self, UP):
+  if not UP:
+    global AutoclickCost, AutoclickTime, cash, autoclick_active
+    if cash >= AutoclickCost:
+      cash -= AutoclickCost
+      AutoclickCost = int(AutoclickCost * 1.5)
+      AutoclickTime *= 0.9
+      autoclick_active = True
+      self.image = True
+  else:
+    self.image = False
 Buttons.append([ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/Button1.png"), pygame.image.load(os.path.dirname(__file__)+"/Button1P.png"), LeftClick=Button0Click), 0, 1, 0, 0, 0])
->>>>>>> Time
+AutoclickButton = ImageTextButton(font.render("Button: .", True, White), pygame.image.load(os.path.dirname(__file__)+"/Button1.png"), pygame.image.load(os.path.dirname(__file__)+"/Button1P.png"), LeftClick=AutoClickHandle)
 CooldownImageBoarder = pygame.image.load(os.path.dirname(__file__)+"/CooldownOutside.png")
 CooldownImageInside = pygame.image.load(os.path.dirname(__file__)+"/CooldownInside.png")
 Cooldown = ProgressBar(CooldownImageInside, (4,4), CooldownImageBoarder)
-=======
->>>>>>> e7fcc79112da1a190c53b1b707629ab330f6217f:main.py
->>>>>>> 67433cf205c094870ab70f9ba7e7572699484f74
+AutoclickCost = 100
+AutoclickTime = 2/0.9
 if os.path.exists("ButtonClicker.save"):
     f = open("ButtonClicker.save")
     data = json.loads(f.read())
@@ -296,33 +293,31 @@ def DrawGame(screen):
     AchivmentsButton.draw(screen, (400, 0))
     Buttons[0][0].text = font.render(f": {Buttons[0][2]:,}", True, White)
     Buttons[0][0].draw(screen, (20, 24))
+    if autoclick_active:
+      AutoclickButton.text = font.render(f"(${AutoclickCost}): {Buttons[0][2]:,}/{AutoclickTime:.4f}s", True, White)
+    else:
+      AutoclickButton.text = font.render(f"(${AutoclickCost}): Autoclick", True, White)
+    AutoclickButton.draw(screen, (550, 24))
     Buttons[1][0].text = font.render(f"(${Buttons[1][1]:,}): {Buttons[1][2]:,}", True, White)
     Buttons[1][0].draw(screen, (20, 49))
-    Time[1][0].text = font.render(f"(${Time[1][1]:,}): {Buttons[1][5]}s", True, White)
+    Time[1][0].text = font.render(f"(${Time[1][1]:,}): {Buttons[1][5]:.4f}s", True, White)
     Time[1][0].draw(screen, (550, 49))
     for j in range(2, len(Buttons)):
         Buttons[j][0].text = font.render(f"(${Buttons[j][1]:,}): {Buttons[j][2]:,}", True, White)
         Buttons[j][0].draw(screen, (20, 24+25*j))
-        Time[j][0].text = font.render(f"(${Time[j][1]:,}): {Buttons[j][5]}s", True, White)
+        Time[j][0].text = font.render(f"(${Time[j][1]:,}): {Buttons[j][5]:.4f}s", True, White)
         Time[j][0].draw(screen, (550, 24+25*j))
     for j in range(1, len(Buttons)):
         if Buttons[j][4]>0:
           Cooldown.draw(screen, (400, 24+25*j), Buttons[j][4], Buttons[j][5])
           Buttons[j][4] -= 1/60
 def InputGame(event):
-    #global autoclick_active
     if Save.Click(event):
         return True
     if AchivmentsButton.Click(event):
         return True
-    #if event.type == pygame.MOUSEBUTTONDOWN:
-    #    if event.button == 3:  # Right click
-    #        mouse_pos = pygame.mouse.get_pos()
-    #        # Check if right-click is on the main button (Button 0)
-    #        button_rect = pygame.Rect(20, 24, Buttons[0][0].image1.get_width(), Buttons[0][0].image1.get_height())
-    #        if button_rect.collidepoint(mouse_pos):
-    #            autoclick_active = not autoclick_active  # Toggle autoclick
-    #            return True
+    if AutoclickButton.Click(event):
+      return True
     for j in range(len(Buttons)):
         if Buttons[j][0].Click(event):
             return True
